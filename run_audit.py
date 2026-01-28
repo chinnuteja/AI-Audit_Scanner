@@ -3,7 +3,7 @@ import time
 import sys
 
 API_BASE = "http://localhost:8000/api/v1"
-TARGET_URL = "https://www.svata.in/"
+TARGET_URL = "https://magnidigitech.com/"
 
 def run_audit():
     print(f"Starting audit for {TARGET_URL}...")
@@ -38,7 +38,7 @@ def run_audit():
         pdf_resp = httpx.get(f"{API_BASE}/audit/{job_id}/pdf", timeout=60.0)
         pdf_resp.raise_for_status()
         
-        filename = "svata_in_audit_report.pdf"
+        filename = "magnidigitech_audit_report.pdf"
         with open(filename, "wb") as f:
             f.write(pdf_resp.content)
         print(f"PDF saved to {filename}")

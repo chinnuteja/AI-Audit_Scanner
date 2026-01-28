@@ -55,22 +55,22 @@ class TechnicalWeights:
 @dataclass
 class AIWeights:
     """AI SEO check weights (must sum to 100)."""
-    # AI Crawler Access (25 pts) - reduced
+    # AI Crawler Access (25 pts)
     robots_ai_bots: int = 25
     
-    # llms.txt (15 pts) - NOW BONUS, not penalty
-    llms_txt_exists: int = 5      # Reduced: optional bonus
-    llms_txt_quality: int = 10    # Reduced
+    # llms.txt (15 pts) - Standard
+    llms_txt_exists: int = 5
+    llms_txt_quality: int = 10
     
-    # Structured Data (30 pts) - increased importance
+    # Structured Data (30 pts)
     schema_exists: int = 12
     schema_types: int = 18
     
-    # Social Previews (15 pts) - increased
+    # Social Previews (15 pts)
     og_tags: int = 8
     twitter_cards: int = 7
     
-    # Extractability (15 pts) - increased
+    # Extractability (15 pts)
     extractability: int = 15
 
 
@@ -92,7 +92,8 @@ class ContentWeights:
     freshness: int = 15
     
     # Trust & Authenticity (35 pts)
-    trust_auth: int = 35
+    trust_signals: int = 28
+    humanized_content: int = 7
 
 
 # Default weight instances
@@ -102,7 +103,7 @@ AI_WEIGHTS = AIWeights()
 CONTENT_WEIGHTS = ContentWeights()
 
 # Scoring version
-SCORING_VERSION = "2.0-PRO"
+SCORING_VERSION = "2.1-STABLE"
 
 # --- Validation (Prevent Drift) ---
 def _validate_weights():
@@ -125,7 +126,7 @@ def _validate_weights():
     w_con = CONTENT_WEIGHTS
     total_con = (w_con.clarity + w_con.heading_structure + w_con.word_count + 
                  w_con.readability + w_con.internal_links + w_con.freshness + 
-                 w_con.trust_auth)
+                 w_con.trust_signals + w_con.humanized_content)
     if total_con != 100:
         raise ValueError(f"CRITICAL: Content weights sum to {total_con}, expected 100")
 

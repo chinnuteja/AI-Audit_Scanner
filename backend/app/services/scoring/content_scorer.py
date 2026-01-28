@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 import re
 
 from app.services.scoring.weights import CONTENT_WEIGHTS
-from app.services.scoring.technical_scorer import Check
+from app.services.scoring.models import Check
 from app.logger import logger
 
 
@@ -32,264 +32,138 @@ class ContentScorer:
         word_count: int,
         h1_count: int,
         h2_count: int,
-        has_clear_purpose: bool,  # From LLM or heuristic
-        has_trust_signals: bool,  # Contact, about, testimonials
+        has_clear_purpose: bool,
+        has_trust_signals: bool,
         internal_link_count: int,
         external_link_count: int,
         has_published_date: bool,
         main_text: str
     ) -> ContentScore:
         """Score content quality.
-        
-        Returns:
-            ContentScore with total and individual checks
+        Uses STRICT scoring (sum of awarded points).
         """
         checks = []
         w = CONTENT_WEIGHTS
         text_lower = main_text.lower()
         
+        # Helper
+        def add_check(id, cat, name, pts, max_pts, condition, evidence_pass, evidence_fail, fix="", severity="P2"):
+            if condition:
+                checks.append(Check(id, cat, name, "pass", pts, max_pts, evidence_pass, "", "high", severity))
+            else:
+                checks.append(Check(id, cat, name, "fail", 0, max_pts, evidence_fail, fix, "high", severity))
+
         # === CLARITY & INTENT (20 pts) ===
         
-        # Detect clarity heuristically
         has_what = any(x in text_lower for x in ["we offer", "we provide", "our service", "about us", "who we are"])
         has_who = any(x in text_lower for x in ["for you", "customers", "clients", "businesses", "teams", "best for"])
         clarity_signals = sum([has_what, has_who, has_clear_purpose])
         
         if clarity_signals >= 2:
-            pts = w.clarity
-            status = "pass"
-            evidence = "Clear purpose and audience defined"
+            checks.append(Check("clarity", "clarity", "Content Clarity", "pass", w.clarity, w.clarity, "Clear purpose and audience", "", "high", "P1"))
         elif clarity_signals == 1:
-            pts = w.clarity // 2
-            status = "partial"
-            evidence = "Partially clear purpose"
+            checks.append(Check("clarity", "clarity", "Content Clarity", "partial", w.clarity // 2, w.clarity, "Partially clear purpose", "Define audience clearly", "high", "P1"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "Unclear page purpose"
-        
-        checks.append(Check(
-            id="clarity", name="Content Clarity", category="clarity",
-            points_awarded=pts, points_possible=w.clarity,
-            status=status, evidence=evidence,
-            how_to_fix="Clearly state what you offer in first 100 words" if pts < w.clarity else None
-        ))
+            checks.append(Check("clarity", "clarity", "Content Clarity", "fail", 0, w.clarity, "Unclear purpose", "State what you offer in first 100 words", "high", "P1"))
         
         # === STRUCTURE & READABILITY (20 pts) ===
         
         # Heading structure (10 pts)
         if h1_count == 1 and h2_count >= 2:
-            pts = w.heading_structure
-            status = "pass"
-            evidence = f"Good structure: 1 H1, {h2_count} H2s"
+            checks.append(Check("heading_structure", "structure", "Heading Structure", "pass", w.heading_structure, w.heading_structure, f"Good structure (1 H1, {h2_count} H2s)", "", "high", "P2"))
         elif h1_count >= 1 and h2_count >= 1:
-            pts = w.heading_structure // 2
-            status = "partial"
-            evidence = f"{h1_count} H1, {h2_count} H2 (could be better)"
+            checks.append(Check("heading_structure", "structure", "Heading Structure", "partial", w.heading_structure // 2, w.heading_structure, f"Basic structure ({h1_count} H1, {h2_count} H2)", "Use more H2 subheadings", "medium", "P2"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "Poor heading structure"
-        
-        checks.append(Check(
-            id="heading_structure", name="Heading Structure", category="structure",
-            points_awarded=pts, points_possible=w.heading_structure,
-            status=status, evidence=evidence,
-            how_to_fix="Use one H1 and multiple H2 headings" if pts < w.heading_structure else None
-        ))
+            checks.append(Check("heading_structure", "structure", "Heading Structure", "fail", 0, w.heading_structure, "Poor heading structure", "Use one H1 and multiple H2s", "high", "P2"))
         
         # Word count (5 pts)
         if word_count >= 500:
-            pts = w.word_count
-            status = "pass"
-            evidence = f"{word_count} words (Substantial)"
+            checks.append(Check("word_count", "structure", "Content Length", "pass", w.word_count, w.word_count, f"{word_count} words", "", "medium", "P2"))
         elif word_count >= 200:
-            pts = int(w.word_count * 0.6)
-            status = "partial"
-            evidence = f"{word_count} words (Acceptable)"
+             checks.append(Check("word_count", "structure", "Content Length", "partial", int(w.word_count * 0.6), w.word_count, f"{word_count} words", "Expand content", "medium", "P2"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = f"{word_count} words (Thin content)"
-        
-        checks.append(Check(
-            id="word_count", name="Content Length", category="structure",
-            points_awarded=pts, points_possible=w.word_count,
-            status=status, evidence=evidence,
-            how_to_fix="Expand content to at least 500 words" if pts < w.word_count else None
-        ))
+             checks.append(Check("word_count", "structure", "Content Length", "fail", 0, w.word_count, f"{word_count} words", "Content too thin", "high", "P2"))
         
         # Readability (5 pts)
         avg_word_length = sum(len(word) for word in main_text.split()) / max(len(main_text.split()), 1)
         if avg_word_length <= 6:
-            pts = w.readability
-            status = "pass"
-            evidence = "Good readability"
+            add_check("readability", "structure", "Readability", w.readability, w.readability, True, "Good readability", "", "", "P2")
         elif avg_word_length <= 8:
-            pts = int(w.readability * 0.6)
-            status = "partial"
-            evidence = "Moderate readability"
+            checks.append(Check("readability", "structure", "Readability", "partial", int(w.readability * 0.6), w.readability, "Moderate readability", "Use simpler words", "medium", "P2"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "Complex language"
-        
-        checks.append(Check(
-            id="readability", name="Readability", category="structure",
-            points_awarded=pts, points_possible=w.readability,
-            status=status, evidence=evidence,
-            how_to_fix="Use simpler words and shorter sentences" if pts < w.readability else None
-        ))
-        
+            add_check("readability", "structure", "Readability", w.readability, w.readability, False, "", "Complex language", "Simplify content", "P2")
+
         # === COMPLETENESS (10 pts) ===
         
         # Internal links (10 pts)
         if internal_link_count >= 3:
-            pts = w.internal_links
-            status = "pass"
-            evidence = f"{internal_link_count} internal links found"
+             add_check("internal_links", "completeness", "Internal Links", w.internal_links, w.internal_links, True, f"{internal_link_count} links", "", "", "P2")
         elif internal_link_count >= 1:
-            pts = w.internal_links // 2
-            status = "partial"
-            evidence = f"{internal_link_count} internal link found"
+             checks.append(Check("internal_links", "completeness", "Internal Links", "partial", w.internal_links // 2, w.internal_links, f"{internal_link_count} link", "Add more internal links", "medium", "P2"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "No internal links"
-        
-        checks.append(Check(
-            id="internal_links", name="Internal Links", category="completeness",
-            points_awarded=pts, points_possible=w.internal_links,
-            status=status, evidence=evidence,
-            how_to_fix="Add links to other relevant pages on your site" if pts < w.internal_links else None
-        ))
-        
+             add_check("internal_links", "completeness", "Internal Links", w.internal_links, w.internal_links, False, "", "No internal links", "Add internal links", "P2")
+
         # === FRESHNESS (15 pts) ===
-        
-        # Stricter Freshness
         if has_published_date:
-            pts = w.freshness
-            status = "pass"
-            evidence = "Published/Updated date found"
-        elif word_count > 1000: # Deep content implies some freshness/evergreen value
-            pts = w.freshness // 2
-            status = "partial"
-            evidence = "Undated but substantial content"
+            add_check("freshness", "freshness", "Content Freshness", w.freshness, w.freshness, True, "Date found", "", "", "P2")
+        elif word_count > 1000:
+            checks.append(Check("freshness", "freshness", "Content Freshness", "partial", w.freshness // 2, w.freshness, "Undated but deep content", "Add published date", "medium", "P2"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "No freshness signals detected"
-            
-        checks.append(Check(
-            id="freshness", name="Content Freshness", category="freshness",
-            points_awarded=pts, points_possible=w.freshness,
-            status=status, evidence=evidence,
-            how_to_fix="Add explicit published or updated date" if pts < w.freshness else None
-        ))
+            add_check("freshness", "freshness", "Content Freshness", w.freshness, w.freshness, False, "", "No date detected", "Add published date", "P2")
+
+        # === TRUST & AUTHENTICITY (35 pts: 28 Trust + 7 Humanized) ===
         
-        # === TRUST & AUTHENTICITY (35 pts) ===
-        # Author(10) + Experience(15) + Evidence(10)
+        # 1. Trust Signals (28 pts)
+        # Split: Author (14) + Evidence (14)
         
-        # Sub-weights (derived dynamically to sum to w.trust_auth)
-        # We target specific ratios: Author (~28%), Experience (~42%), Evidence (~28%)
-        # But to be safe and clean, let's hardcode the split of the Trust bucket here 
-        # OR better: add sub-weights to weights.py. 
-        # For now, we will compute them as portions of w.trust_auth to respect the parent weight.
-        
-        w_trust = w.trust_auth
-        # Split: Author=30%, Experience=40%, Evidence=30%
-        pts_author_max = int(w_trust * 0.3)
-        pts_exp_max = int(w_trust * 0.4)
-        pts_evid_max = w_trust - pts_author_max - pts_exp_max # Remainder ensures sum matches
-        
-        # 1. Author & Accountability
+        # Author & Accountability (14 pts)
+        pts_author = 14
         author_keywords = ["written by", "author:", "byline", "editorial", "reviewer"]
         found_byline = sum(1 for kw in author_keywords if kw in text_lower)
         has_social = "linkedin.com" in text_lower or "twitter.com" in text_lower
         
         if has_trust_signals or (found_byline >= 1 and has_social):
-            pts = pts_author_max
-            status = "pass"
-            evidence = "Author / Accountability signals found"
+             add_check("trust_author", "trust_signals", "Author & Accountability", pts_author, pts_author, True, "Author/Trust signals found", "", "", "P1")
         elif found_byline >= 1:
-            pts = pts_author_max // 2
-            status = "partial"
-            evidence = "Author name found but no profile/trust links"
+             checks.append(Check("trust_author", "trust_signals", "Author & Accountability", "partial", pts_author // 2, pts_author, "Author name found", "Add bio/social links", "medium", "P1"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "Missing Author or Trust signals"
-            
-        checks.append(Check(
-            id="trust_author", name="Author & Accountability", category="trust_auth",
-            points_awarded=pts, points_possible=pts_author_max,
-            status=status, evidence=evidence,
-            how_to_fix="Add specific Author bio or link to About/Contact pages" if pts < pts_author_max else None
-        ))
-        
-        # 2. First-Hand Experience
-        pronouns_count = sum(text_lower.count(p) for p in ["i ", "we ", "my ", "our "])
-        experience_verbs = ["tested", "tried", "analyzed", "reviewed", "experienced", "discovered", "learned", "built", "interviewed"]
-        has_exp_verbs = any(v in text_lower for v in experience_verbs)
-        has_numbers = bool(re.search(r'(\d+%|\$\d+|\d+\.\d+|years|months|hours)', text_lower))
-        heading_keywords = ["result", "case study", "experiment", "benchmark", "before", "after"]
-        has_exp_heading = any(k in text_lower for k in heading_keywords)
-        
-        strong_experience = (pronouns_count >= 2) and (has_exp_verbs or has_numbers or has_exp_heading)
-        
-        if strong_experience:
-            pts = pts_exp_max
-            status = "pass"
-            evidence = "Strong experience signals (Pronouns + Data/Verbs)"
-        elif pronouns_count >= 2:
-            pts = pts_exp_max // 2
-            status = "partial"
-            evidence = "Uses personal language but lacks specific data/verbs"
-        else:
-            pts = 0
-            status = "fail"
-            evidence = "Generic / Impersonal tone"
-            
-        checks.append(Check(
-            id="trust_experience", name="Experience Signals", category="trust_auth",
-            points_awarded=pts, points_possible=pts_exp_max,
-            status=status, evidence=evidence,
-            how_to_fix="Demonstrate experience: 'We tested...' + numbers/results" if pts < pts_exp_max else None
-        ))
-        
-        # 3. Evidence & Citations
+             add_check("trust_author", "trust_signals", "Author & Accountability", pts_author, pts_author, False, "", "Missing author info", "Add author bio", "P1")
+             
+        # Evidence & Citations (14 pts)
+        pts_evid = 14
         citation_keywords = ["according to", "source:", "study", "report", "cited", "reference"]
         has_citation_kw = any(kw in text_lower for kw in citation_keywords)
         
         if external_link_count >= 1 and has_citation_kw:
-            pts = pts_evid_max
-            status = "pass"
-            evidence = f"Citations present ({external_link_count} ext links)"
+             add_check("trust_evidence", "trust_signals", "Evidence & Citations", pts_evid, pts_evid, True, "Citations with links", "", "", "P1")
         elif external_link_count >= 1:
-            pts = int(pts_evid_max * 0.6)
-            status = "partial" 
-            evidence = f"{external_link_count} external links (add citation context)"
+             checks.append(Check("trust_evidence", "trust_signals", "Evidence & Citations", "partial", int(pts_evid * 0.6), pts_evid, "Links present", "Add citation context", "medium", "P1"))
         elif has_citation_kw:
-            pts = int(pts_evid_max * 0.3)
-            status = "partial"
-            evidence = "Citation terms used but no external links found"
+             checks.append(Check("trust_evidence", "trust_signals", "Evidence & Citations", "partial", int(pts_evid * 0.3), pts_evid, "Citation terms used", "Add external links", "medium", "P1"))
         else:
-            pts = 0
-            status = "fail"
-            evidence = "No evidence or external citations"
-            
-        checks.append(Check(
-            id="trust_evidence", name="Evidence & Citations", category="trust_auth",
-            points_awarded=pts, points_possible=pts_evid_max,
-            status=status, evidence=evidence,
-            how_to_fix="Cite authoritative sources with external links" if pts < pts_evid_max else None
-        ))
+             add_check("trust_evidence", "trust_signals", "Evidence & Citations", pts_evid, pts_evid, False, "", "No citations", "Cite sources", "P1")
+
+        # 2. Humanized Content (7 pts)
+        # Replacing "Experience Signals"
+        pts_human = w.humanized_content
+        pronouns_count = sum(text_lower.count(p) for p in ["i ", "we ", "my ", "our "])
+        experience_verbs = ["tested", "tried", "analyzed", "reviewed", "experienced", "discovered", "built", "interviewed"]
+        has_exp_verbs = any(v in text_lower for v in experience_verbs)
+        has_numbers = bool(re.search(r'(\d+%|\$\d+|\d+\.\d+|years|months|hours)', text_lower))
         
-        # Calculate Strict Total (No normalization drift)
+        # Logic: First-hand experience + Specific numbers
+        is_humanized = (pronouns_count >= 1) and (has_exp_verbs or has_numbers)
+        
+        if is_humanized:
+             add_check("humanized_content", "trust_signals", "Experience Signals", pts_human, pts_human, True, "First-hand experience detected", "", "", "P1")
+        elif pronouns_count >= 1:
+             checks.append(Check("humanized_content", "trust_signals", "Experience Signals", "partial", pts_human // 2, pts_human, "Personal tone used", "Add specific data/results", "medium", "P1"))
+        else:
+             add_check("humanized_content", "trust_signals", "Experience Signals", pts_human, pts_human, False, "", "Generic content", "Add personal experience & data", "P1")
+
+        # Calculate Strict Total
         total = sum(c.points_awarded for c in checks)
-        # max_total should be exactly 100 based on weights.py
-        # Check correctness implies max_total matches sum(weights)
         
         logger.debug(f"Content score: {total}/100")
         
-        return ContentScore(score=total, checks=checks)
+        return ContentScore(score=int(total), checks=checks)

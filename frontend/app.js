@@ -331,8 +331,8 @@ function populateIssues(checks) {
 function populateBreakdown(checks) {
     const categories = {
         technical: ['crawlability', 'performance', 'hygiene'],
-        content: ['clarity', 'structure', 'completeness', 'freshness', 'trust_auth'],
-        ai: ['ai_access', 'llms_txt', 'schema', 'social', 'extractability']
+        content: ['clarity', 'structure', 'completeness', 'freshness', 'trust_auth', 'trust_signals'],
+        ai: ['ai_crawler', 'llms_txt', 'schema', 'social', 'extractability']
     };
 
     for (const [section, cats] of Object.entries(categories)) {

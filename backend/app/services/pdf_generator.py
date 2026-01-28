@@ -22,6 +22,7 @@ CATEGORY_MAP = {
     
     # AI SEO
     "ai_access": "ai",
+    "ai_crawler": "ai",
     "llms_txt": "ai",
     "schema": "ai",
     "social": "ai",
@@ -33,6 +34,7 @@ CATEGORY_MAP = {
     "completeness": "content",
     "freshness": "content",
     "trust_auth": "content",
+    "trust_signals": "content",
     "readability": "content"
 }
 

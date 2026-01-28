@@ -131,6 +131,7 @@ class AuditRunner:
                 ai_bots_allowed=robots_data.allowed_bots,
                 ai_bots_blocked=robots_data.disallowed_bots,
                 llms_txt_exists=llms_data.exists,
+                llms_txt_checked=True, # We explicitly ran the collector
                 llms_txt_quality=llms_quality,
                 has_schema=bool(schema_data.schemas),
                 schema_types=[s.type for s in schema_data.schemas],

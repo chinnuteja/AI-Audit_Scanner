@@ -14,11 +14,12 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from app.services.scoring.weights import CATEGORY_WEIGHTS, SCORING_VERSION
-from app.services.scoring.technical_scorer import TechnicalScorer, Check
+from app.services.scoring.technical_scorer import TechnicalScorer
 from app.services.scoring.ai_scorer import AIScorer
 from app.services.scoring.content_scorer import ContentScorer
 from app.services.scoring.caps import CapsEngine
 from app.services.scoring.confidence import ConfidenceScorer, ConfidenceResult
+from app.services.scoring.models import Check
 from app.logger import logger
 
 
@@ -96,6 +97,7 @@ class ScoringEngine:
         ai_bots_allowed: list[str],
         ai_bots_blocked: list[str],
         llms_txt_exists: bool,
+        llms_txt_checked: bool,
         llms_txt_quality: int,
         has_schema: bool,
         schema_types: list[str],
@@ -205,7 +207,7 @@ class ScoringEngine:
         confidence = self.confidence_scorer.score(
             html_available=bool(html),
             robots_available=robots_available,
-            llms_txt_checked=True,  # We always attempt llms.txt fetch in audit_runner
+            llms_txt_checked=llms_txt_checked,
             schema_extracted=has_schema,
             perf_available=perf_available,
             sitemap_available=has_sitemap,
