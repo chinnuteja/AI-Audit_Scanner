@@ -1,0 +1,15 @@
+{
+  "url": "https://svata.ai",
+  "final_url": "https://svata.ai",
+  "status": "pending",
+  "started_at": "2026-01-28T12:12:01.103385",
+  "completed_at": null,
+  "duration_seconds": 0.0,
+  "scores": null,
+  "confidence": null,
+  "caps_applied": [],
+  "labels": [],
+  "checks": [],
+  "error": null,
+  "scoring_version": "1.0"
+}

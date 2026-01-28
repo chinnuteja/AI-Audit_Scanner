@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Svata AI SEO Auditor - Analyze your website's AI readiness, technical SEO, and content quality with advanced scoring.">
+
+    <title>AI SEO Auditor | Svata</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="index.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23C2B280'/%3E%3Ctext x='16' y='22' font-family='Inter' font-weight='800' font-size='16' fill='%230A0A0A' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <span class="logo-icon">S</span>
+                <span>Svata</span>
+                <span class="nav-badge">Beta</span>
+            </a>
+            <div class="nav-actions">
+                <!-- Future: Add nav items here -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="sand-gradient-text">AI SEO</span> Auditor
+            </h1>
+            <p class="hero-subtitle">
+                Analyze your website's AI readiness, technical SEO, and content quality with our advanced scoring
+                engine.
+            </p>
+
+            <!-- Audit Form -->
+            <form class="audit-form" id="audit-form">
+                <div class="input-wrapper">
+                    <input type="text" class="url-input" id="url-input"
+                        placeholder="Enter website URL (e.g., example.com)" autocomplete="off" required>
+                    <button type="submit" class="btn-gold" id="submit-btn">
+                        <span class="btn-text">Analyze</span>
+                        <span class="btn-loading">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </div>
+
+                <button type="button" class="options-toggle" id="options-toggle">
+                    <span>Advanced Options</span>
+                    <span class="icon">▼</span>
+                </button>
+
+                <div class="advanced-options" id="advanced-options">
+                    <div class="option-item">
+                        <input type="checkbox" id="include-perf" checked>
+                        <label for="include-perf">Include Performance Metrics (PageSpeed API)</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="results-section">
+        <div class="container">
+            <!-- Results Header -->
+            <div class="results-header">
+                <div class="audited-url">
+                    <span>Audited:</span>
+                    <a href="#" id="result-url" target="_blank">example.com</a>
+                </div>
+
+                <div class="confidence-badge">
+                    <span>Confidence:</span>
+                    <span class="confidence-level high" id="confidence-level">HIGH</span>
+                    <span class="text-muted" id="confidence-reason">All data sources available</span>
+                </div>
+
+                <div class="labels-section" id="labels-section">
+                    <div class="labels" id="labels"></div>
+                </div>
+            </div>
+
+            <!-- Score Cards -->
+            <div class="scores-grid">
+                <div class="score-card overall">
+                    <span class="score-label">Overall Score</span>
+                    <div class="score-value" id="overall-score">0</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar good" id="overall-bar"></div>
+                    </div>
+                </div>
+
+                <div class="score-card">
+                    <span class="score-label">Technical</span>
+                    <div class="score-value" id="technical-score">0</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar good" id="technical-bar"></div>
+                    </div>
+                </div>
+
+                <div class="score-card">
+                    <span class="score-label">Content</span>
+                    <div class="score-value" id="content-score">0</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar good" id="content-bar"></div>
+                    </div>
+                </div>
+
+                <div class="score-card">
+                    <span class="score-label">AI SEO</span>
+                    <div class="score-value" id="ai-score">0</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar good" id="ai-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab active" data-tab="issues">Issues</button>
+                    <button class="tab" data-tab="breakdown">Breakdown</button>
+                </div>
+            </div>
+
+            <!-- Issues Tab -->
+            <div class="tab-content active" id="issues-tab">
+                <div class="issues-header">
+                    <h2 class="issues-title">Issues Found</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-severity="all">All</button>
+                        <button class="filter-btn" data-severity="P0">Critical</button>
+                        <button class="filter-btn" data-severity="P1">Important</button>
+                        <button class="filter-btn" data-severity="P2">Minor</button>
+                    </div>
+                </div>
+                <div class="issues-list" id="issues-list">
+                    <!-- Issues populated by JS -->
+                </div>
+            </div>
+
+            <!-- Breakdown Tab -->
+            <div class="tab-content" id="breakdown-tab">
+                <div class="breakdown-grid">
+                    <div class="breakdown-section">
+                        <h3 class="breakdown-title">Technical SEO</h3>
+                        <div class="checks-list" id="technical-checks">
+                            <!-- Checks populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="breakdown-section">
+                        <h3 class="breakdown-title">Content Quality</h3>
+                        <div class="checks-list" id="content-checks">
+                            <!-- Checks populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="breakdown-section">
+                        <h3 class="breakdown-title">AI Readiness</h3>
+                        <div class="checks-list" id="ai-checks">
+                            <!-- Checks populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="export-section">
+                <button class="btn-secondary" id="export-pdf">
+                    <span>📄</span>
+                    Download PDF
+                </button>
+                <button class="btn-secondary" id="export-json">
+                    <span>↓</span>
+                    Export JSON
+                </button>
+                <button class="btn-secondary" id="new-audit">
+                    <span>+</span>
+                    New Audit
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

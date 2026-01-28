@@ -1,0 +1,23 @@
+# AI SEO Auditor - Backend Dependencies
+
+# FastAPI
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# HTTP
+httpx>=0.25.0
+
+# HTML Parsing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Database
+sqlalchemy>=2.0.0
+
+# Firecrawl (optional - for JS pages)
+firecrawl-py>=0.0.16
+
+# Utilities
+python-dotenv>=1.0.0

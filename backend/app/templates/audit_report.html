@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Svata SEO Audit - {{ url }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm 18mm 15mm 18mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 9pt;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #1a1a1a;
+        }
+
+        .brand {
+            font-size: 24pt;
+            font-weight: 800;
+            color: #1a1a1a;
+            letter-spacing: -1px;
+        }
+
+        .meta {
+            text-align: right;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        .meta .url {
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 10pt;
+        }
+
+        /* SCORE DASHBOARD */
+        .dashboard {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .score-box {
+            flex: 1;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 18px 12px;
+            text-align: center;
+        }
+
+        .score-box.main {
+            flex: 1.5;
+            background: #1a1a1a;
+            border: none;
+        }
+
+        .score-box .value {
+            font-size: 32pt;
+            font-weight: 800;
+            line-height: 1;
+            color: #1a1a1a;
+        }
+
+        .score-box.main .value {
+            font-size: 42pt;
+            color: #fff;
+        }
+
+        .score-box .label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 6px;
+            color: #888;
+        }
+
+        .score-box.main .label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* SECTION HEADERS */
+        h2 {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 22px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e5e5;
+        }
+
+        /* CHECK TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            margin-bottom: 15px;
+        }
+
+        th {
+            background: #f5f5f5;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            border-bottom: 1px solid #ddd;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .check-name {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 7pt;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-skip {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .status-info {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .pts {
+            font-weight: 600;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .evidence {
+            color: #666;
+        }
+
+        .fix {
+            color: #856404;
+            font-size: 7.5pt;
+            margin-top: 4px;
+            display: block;
+            font-style: italic;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 30px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 7pt;
+            color: #999;
+        }
+
+        /* Page control */
+        tr {
+            page-break-inside: avoid;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="brand">Svata</div>
+        <div class="meta">
+            <div class="url">{{ url }}</div>
+            <div>SEO Audit Report • {{ date }}</div>
+        </div>
+    </div>
+
+    <!-- SCORE DASHBOARD -->
+    <div class="dashboard">
+        <div class="score-box main">
+            <div class="value">{{ scores.overall }}</div>
+            <div class="label">Overall Score</div>
+        </div>
+        <div class="score-box">
+            <div class="value">{{ scores.technical }}</div>
+            <div class="label">Technical</div>
+        </div>
+        <div class="score-box">
+            <div class="value">{{ scores.content }}</div>
+            <div class="label">Content</div>
+        </div>
+        <div class="score-box">
+            <div class="value">{{ scores.ai }}</div>
+            <div class="label">AI Ready</div>
+        </div>
+    </div>
+
+    <!-- TECHNICAL HEALTH -->
+    <h2>Technical Health</h2>
+    <table>
+        <tr>
+            <th style="width:28%">Check</th>
+            <th style="width:10%">Status</th>
+            <th style="width:10%">Score</th>
+            <th>Details</th>
+        </tr>
+        {% for check in checks_by_category['technical'] %}
+        <tr>
+            <td class="check-name">{{ check.name }}</td>
+            <td><span class="status status-{{ check.status }}">{{ check.status }}</span></td>
+            <td class="pts">{{ check.points_awarded }}/{{ check.points_possible }}</td>
+            <td>
+                <span class="evidence">{{ check.evidence or '-' }}</span>
+                {% if check.how_to_fix and check.status != 'pass' %}<span class="fix">💡 {{ check.how_to_fix }}</span>{%
+                endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- PAGE 2 -->
+    <div class="page-break"></div>
+
+    <!-- CONTENT QUALITY -->
+    <h2>Content & Quality</h2>
+    <table>
+        <tr>
+            <th style="width:28%">Check</th>
+            <th style="width:10%">Status</th>
+            <th style="width:10%">Score</th>
+            <th>Details</th>
+        </tr>
+        {% for check in checks_by_category['content'] %}
+        <tr>
+            <td class="check-name">{{ check.name }}</td>
+            <td><span class="status status-{{ check.status }}">{{ check.status }}</span></td>
+            <td class="pts">{{ check.points_awarded }}/{{ check.points_possible }}</td>
+            <td>
+                <span class="evidence">{{ check.evidence or '-' }}</span>
+                {% if check.how_to_fix and check.status != 'pass' %}<span class="fix">💡 {{ check.how_to_fix }}</span>{%
+                endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- AI OPTIMIZATION -->
+    <h2>AI Optimization</h2>
+    <table>
+        <tr>
+            <th style="width:28%">Check</th>
+            <th style="width:10%">Status</th>
+            <th style="width:10%">Score</th>
+            <th>Details</th>
+        </tr>
+        {% for check in checks_by_category['ai'] %}
+        <tr>
+            <td class="check-name">{{ check.name }}</td>
+            <td><span class="status status-{{ check.status }}">{{ check.status }}</span></td>
+            <td class="pts">{{ check.points_awarded }}/{{ check.points_possible }}</td>
+            <td>
+                <span class="evidence">{{ check.evidence or '-' }}</span>
+                {% if check.how_to_fix and check.status != 'pass' %}<span class="fix">💡 {{ check.how_to_fix }}</span>{%
+                endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        Generated by Svata • AI-Powered SEO Intelligence
+    </div>
+
+</body>
+
+</html>
