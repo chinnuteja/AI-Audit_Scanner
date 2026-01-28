@@ -62,7 +62,7 @@ class SchemaData:
 class SchemaCollector:
     """Collector for JSON-LD structured data."""
     
-    def extract(self, html: str) -> SchemaData:
+    def collect(self, html: str) -> SchemaData:
         """Extract all JSON-LD schemas from HTML.
         
         Args:

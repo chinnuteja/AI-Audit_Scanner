@@ -7,6 +7,7 @@ import asyncio
 from datetime import datetime
 from typing import Optional
 from urllib.parse import urlparse
+from dataclasses import asdict
 
 from app.logger import logger
 from app.services.page_fetcher import PageFetcher
@@ -132,10 +133,10 @@ class AuditRunner:
                 llms_txt_exists=llms_data.exists,
                 llms_txt_quality=llms_quality,
                 has_schema=bool(schema_data.schemas),
-                schema_types=[s.get("@type", "Unknown") for s in schema_data.schemas],
+                schema_types=[s.type for s in schema_data.schemas],
                 has_og_tags=bool(meta_data.og_tags),
                 has_twitter_cards=bool(meta_data.twitter_tags),
-                has_faq_schema=any(s.get("@type") == "FAQPage" for s in schema_data.schemas),
+                has_faq_schema=any(s.type == "FAQPage" for s in schema_data.schemas),
                 has_published_date=has_published_date,
                 has_trust_signals=False, # Placeholder
                 has_clear_purpose=True, # Placeholder
@@ -148,6 +149,13 @@ class AuditRunner:
             completed_at = datetime.utcnow()
             duration = (completed_at - started_at).total_seconds()
             
+            completed_at = datetime.utcnow()
+            duration = (completed_at - started_at).total_seconds()
+            
+            # Convert dataclasses to dicts for Pydantic
+            scores_dict = asdict(scores.scores)
+            checks_list = [asdict(c) for c in scores.checks]
+            
             return AuditResult(
                 job_id=job_id,
                 url=url,
@@ -156,11 +164,11 @@ class AuditRunner:
                 started_at=started_at,
                 completed_at=completed_at,
                 duration_seconds=round(duration, 2),
-                scores=scores.scores,
-                confidence=scores.confidence,
+                scores=scores_dict,
+                confidence=asdict(scores.confidence),
                 caps_applied=scores.caps_applied,
                 labels=scores.labels,
-                checks=scores.checks,
+                checks=checks_list,
                 scoring_version="1.1"
             )
             
